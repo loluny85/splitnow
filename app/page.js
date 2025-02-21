@@ -88,7 +88,7 @@ const App = () => {
         </div>
         {transactions.length > 0 && (
           <div ref={transactionsRef} className={`transition-transform duration-700 ${showTransactions ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} w-full md:w-1/2 bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6 text-white shadow-lg mt-10 md:mt-0` }>
-            <h2 className="text-2xl font-semibold mb-4 text-center">Expense Summary</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-center">Expense Summary💰</h2>
             <ul className="space-y-2">
               {transactions.map((t, index) => (
                 <li key={index} className="flex justify-between items-center bg-white/20 p-3 rounded-md">
