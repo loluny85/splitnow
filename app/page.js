@@ -1,101 +1,99 @@
-import Image from "next/image";
+"use client";
+import React, { useState, useRef } from "react";
 
-export default function Home() {
+const App = () => {
+  const [participants, setParticipants] = useState([]);
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [transactions, setTransactions] = useState([]);
+  const [showTransactions, setShowTransactions] = useState(false);
+  const nameInputRef = useRef(null);
+
+  const addParticipant = () => {
+    if (!name.trim()) return;
+    setParticipants([...participants, { name, paid: amount ? parseFloat(amount) : 0 }]);
+    setName("");
+    setAmount("");
+    nameInputRef.current?.focus();
+  };
+
+  const removeParticipant = (index) => {
+    setParticipants(participants.filter((_, i) => i !== index));
+  };
+
+  const calculateSplit = () => {
+    if (participants.length === 0) {
+      alert("No participants added!");
+      return;
+    }
+    const totalPaid = participants.reduce((sum, p) => sum + p.paid, 0);
+    const equalShare = totalPaid / participants.length;
+    let creditors = [], debtors = [];
+    participants.forEach((p) => {
+      const balance = p.paid - equalShare;
+      if (balance > 0) creditors.push({ name: p.name, balance });
+      if (balance < 0) debtors.push({ name: p.name, balance: -balance });
+    });
+    let newTransactions = [];
+    while (creditors.length > 0 && debtors.length > 0) {
+      let creditor = creditors[0];
+      let debtor = debtors[0];
+      let amount = Math.min(creditor.balance, debtor.balance);
+      newTransactions.push({ from: debtor.name, to: creditor.name, amount });
+      creditor.balance -= amount;
+      debtor.balance -= amount;
+      if (creditor.balance === 0) creditors.shift();
+      if (debtor.balance === 0) debtors.shift();
+    }
+    setTransactions(newTransactions);
+    setShowTransactions(true);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 flex items-center justify-center px-5 font-sans overflow-hidden">
+      <div className="flex w-full max-w-5xl gap-10">
+        <div className={`transition-transform duration-700 ${showTransactions ? '-translate-x-10 opacity-100' : 'translate-x-0 opacity-100'} w-1/2` }>
+          <h1 className="text-4xl font-bold text-white mb-8 shadow-md text-center">Splitwise - Equal Expense Split</h1>
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6 text-white shadow-lg">
+            <h2 className="text-2xl font-semibold mb-4 text-center">Add Participants:</h2>
+            <div className="flex flex-col gap-4">
+              <input ref={nameInputRef} type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 rounded-md bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" />
+              <input type="number" placeholder="Amount Paid" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-md bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50" />
+              <button onClick={addParticipant} className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md transition">Add</button>
+            </div>
+          </div>
+          {participants.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6 text-white shadow-lg mt-6">
+              <h2 className="text-2xl font-semibold mb-4 text-center">Participants</h2>
+              <ul className="space-y-2">
+                {participants.map((p, index) => (
+                  <li key={index} className="flex justify-between items-center bg-white/20 p-3 rounded-md">
+                    {p.name}: AED {p.paid.toFixed(2)}
+                    <button onClick={() => removeParticipant(index)} className="text-red-400 hover:text-red-500">✖</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="flex justify-center mt-6">
+            <button onClick={calculateSplit} className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white font-semibold rounded-md transition">Calculate Split</button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {transactions.length > 0 && (
+          <div className={`transition-transform duration-700 ${showTransactions ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} w-1/2 bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6 text-white shadow-lg` }>
+            <h2 className="text-2xl font-semibold mb-4 text-center">Who Pays Whom</h2>
+            <ul className="space-y-2">
+              {transactions.map((t, index) => (
+                <li key={index} className="flex justify-between items-center bg-white/20 p-3 rounded-md">
+                  {t.from} pays {t.to} AED {t.amount.toFixed(2)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+export default App;

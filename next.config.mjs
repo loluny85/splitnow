@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+const nextConfig = {
+    compiler: {
+      styledComponents: true, // Enables SSR for styled-components
+    },
+  };
+  
+  export default nextConfig;
+  
